@@ -1,0 +1,13 @@
+[Unit]
+Description=UnifiRespondd
+After=network.target
+
+[Service]
+Type=simple
+User=root
+Group=root
+ExecStart=/usr/bin/php /opt/unifirespondd.php
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

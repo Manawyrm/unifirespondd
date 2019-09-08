@@ -1,5 +1,12 @@
-<?php 
-// snmpwalk -v2c -c observium 10.4.0.44 -m ALL 1.3.6.1.4.1.41112
+<?php
+/**
+* @brief		Unifi respondd Bridge for Freifunk
+* @date			2019-09-08
+* @version		1.0
+* @author		Manawyrm <freifunk@tbspace.de>
+* @license 		GPL v3
+**/
+
 $config = [
 	"mcastGroup" => "ff05::2:1001",
 	"snmpCommunity" => "observium",
@@ -169,7 +176,6 @@ function getData($provider = "nodeinfo", $snmp, $device, $config)
 		],
 		'network' => [
 			'addresses' => [
-				"https://dna-ev.de"
 			],
 			/*'mesh' => [
 				'bat0' => [

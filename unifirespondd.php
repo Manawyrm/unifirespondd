@@ -1,7 +1,11 @@
 <?php 
+// snmpwalk -v2c -c observium 10.4.0.44 -m ALL 1.3.6.1.4.1.41112
 $config = [
 	"mcastGroup" => "ff05::2:1001",
 	"snmpCommunity" => "observium",
+	"contact" => "freifunk@dna-ev.de",
+	"site_code" => "ffh",
+	"domain_code" => "alfeld",
 
 	"devices" => [
 		[
@@ -41,10 +45,12 @@ function mainLoop($config)
 {
 	$socket = socket_create(AF_INET6, SOCK_DGRAM, SOL_UDP);
 	socket_set_option($socket, SOL_SOCKET, SO_REUSEADDR, 1);
-	socket_set_option($socket, SOL_SOCKET, MCAST_JOIN_GROUP, [
+
+	socket_set_option($socket, IPPROTO_IPV6, MCAST_JOIN_GROUP, [
 		"group" => $config['mcastGroup'],
 		"interface" => 0,
 	]);
+
 	if (!socket_bind($socket, '::', 1001))
 		echo 'Unable to bind socket: '. socket_strerror(socket_last_error()) . PHP_EOL;
 
@@ -75,7 +81,7 @@ function mainLoop($config)
 					$provider = trim($provider); 
 					if (!empty($provider))
 					{
-						$data[$provider] = getData($provider, $snmpData, $device);
+						$data[$provider] = getData($provider, $snmpData, $device, $config);
 
 						if ($data[$provider] === false)
 							unset($data[$provider]);
@@ -86,7 +92,7 @@ function mainLoop($config)
 			}
 			else
 			{
-				$data = getData($buf[0], $snmpData, $device);
+				$data = getData($buf[0], $snmpData, $device, $config);
 				$sendbuf = json_encode($data);
 			}
 			socket_sendto($socket, $sendbuf, strlen($sendbuf), 0, $from, $port);
@@ -137,7 +143,7 @@ function fetchSNMP($config, $device)
 
 
 
-function getData($provider = "nodeinfo", $snmp, $device)
+function getData($provider = "nodeinfo", $snmp, $device, $config)
 {
 	if ($provider == "nodeinfo")
 	{
@@ -184,11 +190,11 @@ function getData($provider = "nodeinfo", $snmp, $device)
 			'longitude' => $device['longitude'],
 		],
 		'owner' => [
-			'contact' => 'freifunk@dna-ev.de',
+			'contact' => $config['contact'],
 		],
 		'system' => [
-			'site_code' => 'ffh',
-			'domain_code' => 'alfeld',
+			'site_code' => $config['site_code'],
+			'domain_code' => $config['domain_code'],
 		],			  
 		'node_id' => str_replace(":", "", $device['mac']),
 		'hostname' => $device['name'],

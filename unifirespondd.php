@@ -1,9 +1,8 @@
 <?php 
-// snmpwalk -v2c -c observium 10.4.0.44 -m ALL 1.3.6.1.4.1.41112
 $config = [
 	"mcastGroup" => "ff05::2:1001",
 	"snmpCommunity" => "observium",
-	"offloaderMAC" => "00:19:99:e7:4b:74",
+
 	"devices" => [
 		[
 			"name" => "Alfeld-Bahnhof-Cafe",
@@ -11,7 +10,8 @@ $config = [
 			"model" => "Ubiquiti UniFi-AC-MESH",
 			"latitude" => 51.981446, 
 			"longitude" => 9.818439,
-			"snmpIP" => "10.4.0.44"
+			"snmpIP" => "10.4.0.44",
+			"offloaderMAC" => "00:19:99:e7:4b:74"
 		],
 		[
 			"name" => "Alfeld-Bahnhof-Busbahnhof",
@@ -19,7 +19,8 @@ $config = [
 			"model" => "Ubiquiti UniFi-AC-MESH",
 			"latitude" => 51.981302,
 			"longitude" => 9.818694,
-			"snmpIP" => "10.4.0.43"
+			"snmpIP" => "10.4.0.43",
+			"offloaderMAC" => "00:19:99:e7:4b:74"
 		],
 	],
 ];
@@ -80,7 +81,7 @@ function mainLoop($config)
 							unset($data[$provider]);
 					}
 				}
-				var_dump($data);
+
 				$sendbuf = gzdeflate(json_encode($data));
 			}
 			else
@@ -234,36 +235,26 @@ function getData($provider = "nodeinfo", $snmp, $device)
 				
 				'node_id' => str_replace(":", "", $device['mac']),
 				'time' => time(),
-				/*'rootfs_usage' => 0.078799999999999995,
-				'memory' => [
-					'total' => 506284,
-					'free' => 439444,
-					'buffers' => 2208,
-					'cached' => 12488,
-				],
-				'stat' => [
-					'cpu' => [
-						'user' => 8638668,
-						'nice' => 0,
-						'system' => 4411128,
-						'idle' => 1867114912,
-						'iowait' => 28,
-						'irq' => 0,
-						'softirq' => 30567072,
-					],
-					'intr' => 6325872760,
-					'ctxt' => 3473140756,
-					'processes' => 24368899,
-					'softirq' => 11157388659,
-				],*/
 				'uptime' => $snmp['uptime'],
-				/*'idletime' => 18671149.120000001,
-				'loadavg' => 0.0,
-				'processes' => [
-					'running' => 1,
-					'total' => 74,
-				],*/
 			];
+	}
+	if ($provider == "neighbours")
+	{
+		return [
+			'batadv' => [
+				$device['mac'] => [
+					'neighbours' => [
+						$device['offloaderMAC'] => [
+							'tq' => 255,
+							'lastseen' => 0,
+						],
+					],
+				],
+			],
+			'wifi' => [
+			],
+			'node_id' => str_replace(":", "", $device['mac']),
+		];
 	}
 	return false; 
 }

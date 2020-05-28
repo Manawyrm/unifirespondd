@@ -121,8 +121,15 @@ function fetchSNMP($config, $device)
 
 		for ($i=1; $i < 10; $i++)
 		{ 
-			$numStations = $session->get(unifiVapNumStations . "." . $i);
-			$channel = $session->get(unifiVapChannel . "." . $i);
+			try
+			{
+				$numStations = $session->get(unifiVapNumStations . "." . $i);
+				$channel = $session->get(unifiVapChannel . "." . $i);
+			}
+			catch (Exception $e)
+			{
+				break; 	
+			}
 
 			if ($channel < 30)
 				$clients24 += $numStations; 

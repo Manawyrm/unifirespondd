@@ -137,17 +137,24 @@ function fetchSNMP($config, $device)
 				$clients5  += $numStations;
 		}
 		
-		return [
-			"uptime" => (int)$session->get(unifiApSystemUptime),
+		if($i > 1 || $clients24 > 0 || $clients5 > 0) 
+		{
+			return [
+				"uptime" => (int)$session->get(unifiApSystemUptime),
+				
+				"rxBytes" => (int)$session->get(unifiIfRxBytes),
+				"rxPackets" => (int)$session->get(unifiIfRxPackets),
+				"txBytes" => (int)$session->get(unifiIfTxBytes),
+				"txPackets" => (int)$session->get(unifiIfTxPackets),
 
-			"rxBytes" => (int)$session->get(unifiIfRxBytes),
-			"rxPackets" => (int)$session->get(unifiIfRxPackets),
-			"txBytes" => (int)$session->get(unifiIfTxBytes),
-			"txPackets" => (int)$session->get(unifiIfTxPackets),
-
-			"clients24" => (int)$clients24,
-			"clients5"  => (int)$clients5,
-		];
+				"clients24" => (int)$clients24,
+				"clients5"  => (int)$clients5,
+			];
+		}
+		else
+		{
+			return false;
+		}
 	}
 	catch (Exception $e)
 	{

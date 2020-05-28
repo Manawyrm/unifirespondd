@@ -121,8 +121,15 @@ function fetchSNMP($config, $device)
 
 		for ($i=1; $i < 10; $i++)
 		{ 
-			$numStations = $session->get(unifiVapNumStations . "." . $i);
-			$channel = $session->get(unifiVapChannel . "." . $i);
+			try
+			{
+				$numStations = $session->get(unifiVapNumStations . "." . $i);
+				$channel = $session->get(unifiVapChannel . "." . $i);
+			}
+			catch (Exception $e)
+			{
+				break; 	
+			}
 
 			if ($channel < 30)
 				$clients24 += $numStations; 
@@ -130,17 +137,24 @@ function fetchSNMP($config, $device)
 				$clients5  += $numStations;
 		}
 		
-		return [
-			"uptime" => (int)$session->get(unifiApSystemUptime),
+		if($i > 1 || $clients24 > 0 || $clients5 > 0) 
+		{
+			return [
+				"uptime" => (int)$session->get(unifiApSystemUptime),
+				
+				"rxBytes" => (int)$session->get(unifiIfRxBytes),
+				"rxPackets" => (int)$session->get(unifiIfRxPackets),
+				"txBytes" => (int)$session->get(unifiIfTxBytes),
+				"txPackets" => (int)$session->get(unifiIfTxPackets),
 
-			"rxBytes" => (int)$session->get(unifiIfRxBytes),
-			"rxPackets" => (int)$session->get(unifiIfRxPackets),
-			"txBytes" => (int)$session->get(unifiIfTxBytes),
-			"txPackets" => (int)$session->get(unifiIfTxPackets),
-
-			"clients24" => (int)$clients24,
-			"clients5"  => (int)$clients5,
-		];
+				"clients24" => (int)$clients24,
+				"clients5"  => (int)$clients5,
+			];
+		}
+		else
+		{
+			return false;
+		}
 	}
 	catch (Exception $e)
 	{

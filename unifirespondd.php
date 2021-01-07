@@ -1,13 +1,14 @@
 <?php
 /**
 * @brief		Unifi respondd Bridge for Freifunk
-* @date			2019-09-08
-* @version		1.0
+* @date			2021-01-07
+* @version		1.1
 * @author		Manawyrm <freifunk@tbspace.de>
 * @license 		GPL v3
 **/
 
 $config = [
+	"interface" => "bat0",
 	"mcastGroup" => "ff05::2:1001",
 	"snmpCommunity" => "observium",
 	"contact" => "freifunk@dna-ev.de",
@@ -16,7 +17,7 @@ $config = [
 
 	"devices" => [
 		[
-			"name" => "Alfeld-Bahnhof-Cafe",
+			"name" => "Alfeld-Bahnhof-1",
 			"mac" => "78:8a:20:48:cc:9c",
 			"model" => "Ubiquiti UniFi-AC-MESH",
 			"latitude" => 51.981446, 
@@ -50,12 +51,24 @@ mainLoop($config);
 
 function mainLoop($config)
 {
+	$ifIndex = 0; 
+	if (isset($config['interface']))
+	{
+		$filename = "/sys/class/net/" . $config['interface'] . "/ifindex";
+		if (!file_exists($filename))
+		{
+			die("Unable to find interface" . $config['interface']);
+		}
+
+		$ifIndex = (int) file_get_contents($filename);
+	}
+
 	$socket = socket_create(AF_INET6, SOCK_DGRAM, SOL_UDP);
 	socket_set_option($socket, SOL_SOCKET, SO_REUSEADDR, 1);
 
 	socket_set_option($socket, IPPROTO_IPV6, MCAST_JOIN_GROUP, [
 		"group" => $config['mcastGroup'],
-		"interface" => 0,
+		"interface" => $ifIndex,
 	]);
 
 	if (!socket_bind($socket, '::', 1001))
